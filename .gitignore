@@ -1,0 +1,6 @@
+# Local / secrets
+github_pat*.txt
+*.pat
+.env
+.DS_Store
+Thumbs.db

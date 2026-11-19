@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Thanksgiving Day Parade Bingo</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,700&family=Source+Sans+3:wght@500;600&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --cranberry: #8b1e3f;
+      --forest: #2f5d3a;
+      --ink: #1c1714;
+      --line: #3a2e28;
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      background: #fff;
+      color: var(--ink);
+      font-family: "Source Sans 3", "Segoe UI", sans-serif;
+    }
+
+    .toolbar {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.85rem 1.25rem;
+      background: var(--cranberry);
+      color: #fff;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.18);
+    }
+
+    .toolbar p {
+      margin: 0;
+      font-size: 0.95rem;
+      max-width: 42rem;
+      line-height: 1.35;
+    }
+
+    .toolbar button {
+      appearance: none;
+      border: 0;
+      border-radius: 6px;
+      background: #fff;
+      color: var(--cranberry);
+      font: inherit;
+      font-weight: 600;
+      padding: 0.55rem 1rem;
+      cursor: pointer;
+    }
+
+    .toolbar button:hover { background: #ffe8ee; }
+
+    #cards {
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+      padding: 1.25rem;
+      align-items: center;
+    }
+
+    .card {
+      width: 8in;
+      min-height: 10.2in;
+      background: #fff;
+      border: 1.5px solid var(--line);
+      padding: 0.28in 0.35in 0.22in;
+      display: flex;
+      flex-direction: column;
+      page-break-after: always;
+      break-after: page;
+    }
+
+    .card:last-child {
+      page-break-after: auto;
+      break-after: auto;
+    }
+
+    .card-header {
+      text-align: center;
+      margin-bottom: 0.12in;
+    }
+
+    .deco-row {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.55rem;
+      margin-bottom: 0.12rem;
+    }
+
+    .deco-row svg {
+      width: 1.55rem;
+      height: 1.55rem;
+      flex-shrink: 0;
+    }
+
+    .card-header h1 {
+      margin: 0;
+      font-family: Fraunces, Georgia, serif;
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: var(--cranberry);
+      letter-spacing: 0.01em;
+      line-height: 1.15;
+    }
+
+    .card-header .meta {
+      margin: 0.15rem 0 0;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--forest);
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    .bingo-letters {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 4px;
+      margin-bottom: 4px;
+    }
+
+    .bingo-letters span {
+      text-align: center;
+      font-family: Fraunces, Georgia, serif;
+      font-size: 1.35rem;
+      font-weight: 700;
+      color: var(--cranberry);
+      letter-spacing: 0.06em;
+      line-height: 1.2;
+    }
+
+    .grid {
+      flex: 1;
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      grid-template-rows: repeat(5, 1fr);
+      gap: 4px;
+      min-height: 7.2in;
+    }
+
+    .cell {
+      position: relative;
+      border: 1.5px solid var(--line);
+      background: #fff;
+      overflow: hidden;
+      aspect-ratio: 1 / 1;
+    }
+
+    .cell img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      object-position: center;
+      display: block;
+      background: #fff;
+      padding: 4%;
+    }
+
+    .cell.free {
+      outline: 2.5px solid var(--cranberry);
+      outline-offset: -3px;
+      background: #fff;
+    }
+
+    .cell.free img {
+      object-fit: contain;
+      padding: 4%;
+    }
+
+    .free-badge {
+      position: absolute;
+      left: 50%;
+      bottom: 6%;
+      transform: translateX(-50%);
+      background: var(--cranberry);
+      color: #fff;
+      font-size: 0.62rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      padding: 0.18rem 0.45rem;
+      border-radius: 999px;
+      z-index: 1;
+    }
+
+    .card-footer {
+      margin-top: 0.18in;
+      display: flex;
+      justify-content: space-between;
+      gap: 1rem;
+      font-size: 0.68rem;
+      color: #5a4d45;
+    }
+
+    .card-footer span:last-child { text-align: right; }
+
+    @media print {
+      body { background: #fff; }
+      .toolbar { display: none !important; }
+      #cards {
+        padding: 0;
+        gap: 0;
+      }
+      .card {
+        width: auto;
+        min-height: auto;
+        height: auto;
+        border: 0;
+        margin: 0;
+        padding: 0.15in 0.2in;
+      }
+      @page {
+        size: letter;
+        margin: 0.35in;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="toolbar">
+    <p><strong>Thanksgiving Day Parade Bingo</strong> — 20 printable cards. Stay online so images load, then print. Cards 1–10: balloons · Cards 11–20: balloons &amp; floats. Center FREE square is Santa.</p>
+    <button type="button" onclick="window.print()">Print cards</button>
+  </div>
+  <div id="cards"></div>
+
+  <script>
+    // Official Macy's lineup thumbnail for Santa's Sleigh (only Santa photo on the lineup page)
+    const SANTA_PHOTO = "https://storage.googleapis.com/contentful-media-uploads/parade/2026/page-lineup/santa-sliegh-thumb_20260807T135554.png";
+
+    const DECO = {
+      turkey: '<svg viewBox="0 0 64 64" aria-hidden="true"><ellipse cx="32" cy="38" rx="14" ry="12" fill="none" stroke="#8b1e3f" stroke-width="2.2"/><path d="M18 34c-8-2-12-10-10-16 6 2 10 8 10 14zM46 34c8-2 12-10 10-16-6 2-10 8-10 14z" fill="none" stroke="#2f5d3a" stroke-width="2"/><path d="M22 28c-4-10 0-18 6-20 0 6 2 12 4 16M42 28c4-10 0-18-6-20 0 6-2 12-4 16" fill="none" stroke="#c45c26" stroke-width="2"/><circle cx="32" cy="34" r="7" fill="none" stroke="#8b1e3f" stroke-width="2"/><path d="M32 40v6M28 48h8" fill="none" stroke="#8b1e3f" stroke-width="2" stroke-linecap="round"/><path d="M36 33h6" fill="none" stroke="#e09b2d" stroke-width="2" stroke-linecap="round"/><circle cx="29.5" cy="32.5" r="1.2" fill="#1c1714"/></svg>',
+      leaf: '<svg viewBox="0 0 64 64" aria-hidden="true"><path d="M32 56c2-14 16-24 24-28-8 2-20-2-28-14-8 12-20 16-28 14 8 4 22 14 24 28z" fill="none" stroke="#2f5d3a" stroke-width="2.2"/><path d="M32 56V26" fill="none" stroke="#2f5d3a" stroke-width="2"/><path d="M32 40c-6-2-10-8-12-12M32 34c6-2 10-8 12-12" fill="none" stroke="#2f5d3a" stroke-width="1.6"/></svg>',
+      pumpkin: '<svg viewBox="0 0 64 64" aria-hidden="true"><path d="M20 30c-6 2-10 10-8 18 2 8 10 12 20 12s18-4 20-12c2-8-2-16-8-18" fill="none" stroke="#c45c26" stroke-width="2.2"/><path d="M32 28c-4 2-8 8-8 16s4 14 8 16c4-2 8-8 8-16s-4-14-8-16z" fill="none" stroke="#c45c26" stroke-width="2"/><path d="M32 28c0-6 2-10 6-12" fill="none" stroke="#2f5d3a" stroke-width="2" stroke-linecap="round"/><path d="M24 30c2-4 6-6 8-6s6 2 8 6" fill="none" stroke="#c45c26" stroke-width="2"/></svg>'
+    };
+
+    const CATALOG = {"santa":{"title":"Santa","type":null,"thumb":SANTA_PHOTO,"slug":"santa"},"balloons":[{"title":"Pumpkins","type":"Novelty Balloon","thumb":"https://storage.googleapis.com/contentful-media-uploads/parade/2026/page-lineup/pumpkin-thumb_20260806T131633.png","slug":"pumpkins"},{"title":"Macy's Gold Stars","type":"Novelty Balloon","thumb":"https://storage.googleapis.com/contentful-media-uploads/parade/2026/page-lineup/gold-star-thumb_20260806T130208.png","slug":"macys-gold-stars"},{"title":"Buzz Lightyear","type":"Giant Balloon","thumb":"https://storage.googleapis.com/contentful-media-uploads/parade/2026/page-lineup/balloon_buzz_thumb_20260810T172146.png","slug":"buzz-lightyear"},{"title":"Underdog","type":"Featured Balloon","thumb":"https://storage.googleapis.com/contentful-media-uploads/parade/2026/page-lineup/balloon_underdog_thumb_20260810T164022.png","slug":"underdog"},{"title":"Gabby & Pandy Paws","type":"Giant Balloon","thumb":"https://storage.googleapis.com/contentful-media-uploads/parade/2026/page-lineup/balloon_gabby_thumb_20260811T012219.png","slug":"gabby-and-pandy-paws"},{"title":"Acorn","type":"Novelty Balloon","thumb":"https://storage.googleapis.com/contentful-media-uploads/parade/2026/page-lineup/acorn-thumb_20260807T132857.png","slug":"acorn"},{"title":"Buckaroo Bob The Minion","type":"Giant Balloon","thumb":"https://storage.googleapis.com/contentful-media-uploads/parade/2026/page-lineup/ballon_minion_thumb_20261002T145302.png","slug":"bob-the-minion"},{"title":"Hello Kitty","type":"Giant Balloon","thumb":"https://storage.googleapis.com/contentful-media-uploads/parade/2026/page-lineup/ballon_hk_thumb_20261002T145330.png","slug":"hello-kitty"},{"title":"Spider-Man","type":"Giant Balloon","thumb":"https://storage.googleapis.com/contentful-media-uploads/parade/2026/page-lineup/balloon_spiderman_thumb_20260810T172624.png","slug":"spider-man"},{"title":"Diary of a Wimpy Kid & Cheese","type":"Balloonicle","thumb":"https://storage.googleapis.com/contentful-media-uploads/parade/2026/page-lineup/thumb_cheese_20260806T135020.png","slug":"diary-of-a-wimpy-kid-r-and-cheese-of-a-wimpy-kid-balloonicle"},{"title":"PAC-MAN","type":"Giant Balloon","thumb":"https://storage.googleapis.com/contentful-media-uploads/parade/2026/page-lineup/balloon_pac_man_thumb_20260810T161351.png","slug":"pac-man"},{"title":"Pikachu & Eevee","type":"Giant Balloon","thumb":"https://storage.googleapis.com/contentful-media-uploads/parade/2026/page-lineup/thumb-pikachu_20260723T202006.png","slug":"pikachu-and-eevee"},{"title":"Frost Pips","type":"Balloonicle","thumb":"https://storage.googleapis.com/contentful-media-uploads/parade/2026/page-lineup/balloonicles_frost_pips_thumb_20260810T134131.png","slug":"frost-pips-tm"},{"title":"Noorah","type":"Giant Balloon","thumb":"https://storage.googleapis.com/contentful-media-uploads/parade/2026/page-lineup/balloon_noorah_thumb_20260811T012301.png","slug":"noorah"},{"title":"Goku","type":"Giant Balloon","thumb":"https://storage.googleapis.com/contentful-media-uploads/parade/2026/page-lineup/thumb_goku_20260723T194626.png","slug":"goku"},{"title":"Macy's Blueprint Stars","type":"Novelty Balloon","thumb":"https://storage.googleapis.com/contentful-media-uploads/parade/2026/page-lineup/balloon_blueprint-star-thumb_20260810T132555.png","slug":"macys-blueprint-stars"},{"title":"The Pillsbury Doughboy","type":"Giant Balloon","thumb":"https://storage.googleapis.com/contentful-media-uploads/parade/2026/page-lineup/dough_boy_20260714T142712.png","slug":"the-pillsbury-doughboy"},{"title":"Joe Cool & Woodstock","type":"Giant Balloon","thumb":"https://storage.googleapis.com/contentful-media-uploads/parade/2026/page-lineup/balloon_joe_cool_thumb_20260902T144625.png","slug":"joe-cool-and-woodstock"},{"title":"Diary Of A Wimpy Kid","type":"Giant Balloon","thumb":"https://storage.googleapis.com/contentful-media-uploads/parade/2026/page-lineup/whimpy-kid-thumbnail_20260714T144625.png","slug":"diary-of-a-wimpy-kid-balloon"},{"title":"KPop Demon Hunters: Derpy Tiger","type":"Featured Balloon","thumb":"https://storage.googleapis.com/contentful-media-uploads/parade/2026/page-lineup/balloon_kpop_thumb_20260810T172021.png","slug":"kpop-demon-hunters-derpy-tiger-balloon"},{"title":"Bluey","type":"Giant Balloon","thumb":"https://storage.googleapis.com/contentful-media-uploads/parade/2026/page-lineup/ballon_bluey_thumb_20261002T194120.png","slug":"bluey"},{"title":"Ice Crystals","type":"Novelty Balloon","thumb":"https://storage.googleapis.com/contentful-media-uploads/parade/2026/page-lineup/snow-crystals-thumb_20260806T125531.png","slug":"ice-crystals"},{"title":"Macy's Green Stars","type":"Novelty Balloon","thumb":"https://storage.googleapis.com/contentful-media-uploads/parade/2026/page-lineup/balloon_green_thumb_20260810T154330.png","slug":"macys-green-stars"},{"title":"Felix the Cat","type":"Featured Balloon","thumb":"https://storage.googleapis.com/contentful-media-uploads/parade/2026/page-lineup/balloon_felix_thumb_20260810T161210.png","slug":"felix-balloon"},{"title":"Smokey Bear","type":"Featured Balloon","thumb":"https://storage.googleapis.com/contentful-media-uploads/parade/2026/page-lineup/smokey-bear-thumb_20260715T171500.png","slug":"smokey-bear"},{"title":"KPop Demon Hunters: Sussie","type":"Balloonicle","thumb":"https://storage.googleapis.com/contentful-media-uploads/parade/2026/page-lineup/balloonicles_sussie_thumb_20260810T134035.png","slug":"kpop-demon-hunters-sussie-balloonicle"},{"title":"Billie Brightpaw","type":"Featured Balloon","thumb":"https://storage.googleapis.com/contentful-media-uploads/parade/2026/page-lineup/balloon_bear_thumb_20260810T130403.png","slug":"billie-brightpaw"},{"title":"SpongeBob SquarePants & Gary","type":"Giant Balloon","thumb":"https://storage.googleapis.com/contentful-media-uploads/parade/2026/page-lineup/spongebob_thumb_20260715T172650.png","slug":"spongebob-squarepants-and-gary"},{"title":"Sorcerer's Apprentice Mickey","type":"Giant Balloon","thumb":"https://storage.googleapis.com/contentful-media-uploads/parade/2026/page-lineup/balloon_mickey_thumb_20260810T161435.png","slug":"sorcerers-apprentice-mickey"},{"title":"Earl the Squirrel","type":"Featured Balloon","thumb":"https://storage.googleapis.com/contentful-media-uploads/parade/2026/page-lineup/balloon_earl_thumb_20261022T192820.png","slug":"earl-the-squirrel"},{"title":"Marshall from PAW Patrol","type":"Giant Balloon","thumb":"https://storage.googleapis.com/contentful-media-uploads/parade/2026/page-lineup/balloon_marshall_thumb_20260811T012106.png","slug":"marshall-from-paw-patrol"},{"title":"Shrek's Onion Carriage","type":"Giant Balloon","thumb":"https://storage.googleapis.com/contentful-media-uploads/parade/2026/page-lineup/balloon_shrek_thumb_20260811T012148.png","slug":"shreks-onion-carriage"},{"title":"Mario","type":"Giant Balloon","thumb":"https://storage.googleapis.com/contentful-media-uploads/parade/2026/page-lineup/balloon_mario_thumb_20260810T172220.png","slug":"mario"},{"title":"Macy's Red Believe Stars","type":"Novelty Balloon","thumb":"https://storage.googleapis.com/contentful-media-uploads/parade/2026/page-lineup/thumb_believe_star_20260723T193916.png","slug":"macys-red-believe-stars"},{"title":"Macy's Yellow Stars","type":"Novelty Balloon","thumb":"https://storage.googleapis.com/contentful-media-uploads/parade/2026/page-lineup/thumb_yellow_star_20260806T130954.png","slug":"macys-yellow-stars"},{"title":"Happy Hippo Triple Stack","type":"Balloonicle","thumb":"https://storage.googleapis.com/contentful-media-uploads/parade/2026/page-lineup/balloonicles_happy_hippo_thumb_20260810T134106.png","slug":"happy-hippo-triple-stack"},{"title":"Dora","type":"Featured Balloon","thumb":"https://storage.googleapis.com/contentful-media-uploads/parade/2026/page-lineup/balloon_dora_thumb_20260811T012027.png","slug":"dora-and-doras-fantastical-rainforest-balloon"},{"title":"Poinsettia Ornaments","type":"Novelty Balloon","thumb":"https://storage.googleapis.com/contentful-media-uploads/parade/2026/page-lineup/thumb_pointsetta_20260806T131424.png","slug":"poinsettia-ornaments"},{"title":"Macy's Blue Stars","type":"Novelty Balloon","thumb":"https://storage.googleapis.com/contentful-media-uploads/parade/2026/page-lineup/thumb_bluestar_20260806T125206.png","slug":"macys-blue-stars"},{"title":"Macy's Red Stars","type":"Novelty Balloon","thumb":"https://storage.googleapis.com/contentful-media-uploads/parade/2026/page-lineup/balloon_red_star_thumb_20260810T161324.png","slug":"macys-red-stars"},{"title":"Macy's Silver Star","type":"Novelty Balloon","thumb":"https://storage.googleapis.com/contentful-media-uploads/parade/2026/page-lineup/balloon_silver_star_thumb_20260810T130456.png","slug":"macys-silver-star"},{"title":"Levi's Balloonicle","type":"Balloonicle","thumb":"https://storage.googleapis.com/contentful-media-uploads/parade/2026/page-lineup/balloonicle_fuzzyeti_thumb_20261117T210621.png","slug":"levis-balloonicle"}],"floats":[{"title":"1-2-3 Sesame Street","type":null,"thumb":"https://storage.googleapis.com/contentful-media-uploads/parade/2026/page-lineup/float_sesame_thumb_20260812T123905.png","slug":"1-2-3-sesame-street"},{"title":"The Counting Sheep's Dream Generator","type":null,"thumb":"https://storage.googleapis.com/contentful-media-uploads/parade/2026/page-lineup/float_serta_thumb_20260811T171317.png","slug":"the-counting-sheeps-dream-generator"},{"title":"Dashing All The Way by DoorDash","type":null,"thumb":"https://storage.googleapis.com/contentful-media-uploads/parade/2026/page-lineup/float_doordash_thumb_20260929T232648.png","slug":"dashing-all-the-way-by-doordash"},{"title":"The Land of Glaciers, Wildlife & Wonder","type":null,"thumb":"https://storage.googleapis.com/contentful-media-uploads/parade/2026/page-lineup/float_holland_thumb_20260811T191030.png","slug":"the-land-of-glacier-and-ice"},{"title":"Macy's Parade All-Stars","type":"Falloon","thumb":"https://storage.googleapis.com/contentful-media-uploads/parade/2026/page-lineup/float_all_stars_thumb_20260811T180442.png","slug":"macys-parade-all-stars"},{"title":"Master Chocolatier Ballroom","type":null,"thumb":"https://storage.googleapis.com/contentful-media-uploads/parade/2026/page-lineup/float_lindt_thumb_20260811T155633.png","slug":"master-chocolatier-ballroom"},{"title":"Road Trip to Parade by GEICO!","type":"Falloon","thumb":"https://storage.googleapis.com/contentful-media-uploads/parade/2026/page-lineup/float_GEICO_thumb_20260922T175101.png","slug":"road-trip-to-parade-by-geico"},{"title":"Mr. Peanut's Power Plant","type":"Falloon","thumb":"https://storage.googleapis.com/contentful-media-uploads/parade/2026/page-lineup/float_mr_peanut_thumb_20261002T152356.png","slug":"mr-peanuts-power-plant"},{"title":"Tony Sarg's Amazing Marionettes","type":"Falloon","thumb":"https://storage.googleapis.com/contentful-media-uploads/parade/2026/page-lineup/float-tony-sarg-thumb_20261029T154611.png","slug":"tony-sargs-amazing-marionettes"},{"title":"Deck the Halls","type":null,"thumb":"https://storage.googleapis.com/contentful-media-uploads/parade/2026/page-lineup/thumb_balsamhillfloat-1_20260715T221734.png","slug":"deck-the-halls"},{"title":"Dora's Fantastical Rainforest","type":null,"thumb":"https://storage.googleapis.com/contentful-media-uploads/parade/2026/page-lineup/thumb_dora%20(1)_20260807T135020.png","slug":"doras-fantastical-rainforest-float"},{"title":"Magic Meets the Seas","type":null,"thumb":"https://storage.googleapis.com/contentful-media-uploads/parade/2026/page-lineup/float-disney-thumb_20261029T154554.png","slug":"magic-meets-the-seas"},{"title":"Brick-tastic Winter Mountain","type":null,"thumb":"https://storage.googleapis.com/contentful-media-uploads/parade/2026/page-lineup/float_lego_thumb_20260811T122255.png","slug":"brick-tastic-winter-mountain"},{"title":"Friends-giving in POPCITY","type":"Falloon","thumb":"https://storage.googleapis.com/contentful-media-uploads/parade/2026/page-lineup/float_popmart_thumb_20260811T125255.png","slug":"friends-giving-in-popcity"},{"title":"Purina Dog Chow Salute to Service Dogs","type":"None","thumb":"https://storage.googleapis.com/contentful-media-uploads/parade/2026/page-lineup/float_purina_thumb_20261022T193135.png","slug":"purina-dog-chow-salute-to-service-dogs"},{"title":"Candy Cosmos","type":"Falloon","thumb":"https://storage.googleapis.com/contentful-media-uploads/parade/2026/page-lineup/haribo-thumb_20260807T134739.png","slug":"candy-cosmos-float"},{"title":"Hogwarts Holiday","type":null,"thumb":"https://storage.googleapis.com/contentful-media-uploads/parade/2026/page-lineup/float_hp_thumb_20261117T210516.png","slug":"hogwarts-holiday"},{"title":"Tom Turkey","type":null,"thumb":"https://storage.googleapis.com/contentful-media-uploads/parade/2026/page-lineup/thumb-Tom_Turkey_float_20260807T135929.png","slug":"tom-turkey"}]};
+
+    function mulberry32(a) {
+      return function () {
+        let t = (a += 0x6d2b79f5);
+        t = Math.imul(t ^ (t >>> 15), t | 1);
+        t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+        return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+      };
+    }
+
+    function shuffle(arr, rand) {
+      const a = arr.slice();
+      for (let i = a.length - 1; i > 0; i--) {
+        const j = Math.floor(rand() * (i + 1));
+        [a[i], a[j]] = [a[j], a[i]];
+      }
+      return a;
+    }
+
+    function pickBoard(pool, seed) {
+      const rand = mulberry32(seed);
+      return shuffle(pool, rand).slice(0, 24);
+    }
+
+    function cellHtml(item, isFree) {
+      if (isFree) {
+        return (
+          '<div class="cell free">' +
+          '<span class="free-badge">FREE</span>' +
+          '<img src="' + SANTA_PHOTO + '" alt="Santa (FREE)" loading="eager" />' +
+          "</div>"
+        );
+      }
+      return (
+        '<div class="cell">' +
+        '<img src="' + item.thumb + '" alt="" loading="lazy" />' +
+        "</div>"
+      );
+    }
+
+    function renderCard(cardNumber, setLabel, tiles) {
+      const cells = [];
+      let ti = 0;
+      for (let i = 0; i < 25; i++) {
+        if (i === 12) cells.push(cellHtml(null, true));
+        else cells.push(cellHtml(tiles[ti++], false));
+      }
+      return (
+        '<section class="card" aria-label="' + setLabel + " card " + cardNumber + '">' +
+        '<header class="card-header">' +
+        '<div class="deco-row">' + DECO.leaf + DECO.turkey + DECO.pumpkin + DECO.turkey + DECO.leaf + "</div>" +
+        "<h1>Thanksgiving Day Parade Bingo</h1>" +
+        '<p class="meta">' + setLabel + " · Card " + cardNumber + "</p>" +
+        "</header>" +
+        '<div class="bingo-letters" aria-hidden="true"><span>B</span><span>I</span><span>N</span><span>G</span><span>O</span></div>' +
+        '<div class="grid">' + cells.join("") + "</div>" +
+        '<footer class="card-footer">' +
+        "<span>Mark a square when you see it!</span>" +
+        "<span>Images from Macy’s Parade lineup — personal use</span>" +
+        "</footer>" +
+        "</section>"
+      );
+    }
+
+    function main() {
+      const balloonPool = CATALOG.balloons;
+      const mixedPool = CATALOG.balloons.concat(CATALOG.floats);
+      const root = document.getElementById("cards");
+      const parts = [];
+
+      for (let n = 1; n <= 10; n++) {
+        const tiles = pickBoard(balloonPool, 2026000 + n * 97);
+        parts.push(renderCard(n, "Balloons", tiles));
+      }
+      for (let n = 1; n <= 10; n++) {
+        const tiles = pickBoard(mixedPool, 2027000 + n * 131);
+        parts.push(renderCard(n, "Balloons & Floats", tiles));
+      }
+
+      root.innerHTML = parts.join("");
+    }
+
+    main();
+  </script>
+</body>
+</html>
