@@ -59,7 +59,15 @@
       cursor: pointer;
     }
 
-    .toolbar button:hover { background: #ffe8ee; }
+    .toolbar button:hover:not(:disabled) { background: #ffe8ee; }
+    .toolbar button:disabled {
+      opacity: 0.7;
+      cursor: wait;
+    }
+    .toolbar .status {
+      font-size: 0.85rem;
+      opacity: 0.95;
+    }
 
     #cards {
       display: flex;
@@ -229,8 +237,8 @@
 </head>
 <body>
   <div class="toolbar">
-    <p><strong>Thanksgiving Day Parade Bingo</strong> — 20 printable cards. Stay online so images load, then print. Cards 1–10: balloons · Cards 11–20: balloons &amp; floats. Center FREE square is Santa.</p>
-    <button type="button" onclick="window.print()">Print cards</button>
+    <p><strong>Thanksgiving Day Parade Bingo</strong> — 20 printable cards. Stay online so images load, then print. Cards 1–10: balloons · Cards 11–20: balloons &amp; floats. Center FREE square is Santa. <span class="status" id="loadStatus">Loading images…</span></p>
+    <button type="button" id="printBtn" disabled>Print cards</button>
   </div>
   <div id="cards"></div>
 
@@ -274,15 +282,66 @@
         return (
           '<div class="cell free">' +
           '<span class="free-badge">FREE</span>' +
-          '<img src="' + SANTA_PHOTO + '" alt="Santa (FREE)" loading="eager" />' +
+          '<img src="' + SANTA_PHOTO + '" alt="Santa (FREE)" loading="eager" decoding="sync" />' +
           "</div>"
         );
       }
       return (
         '<div class="cell">' +
-        '<img src="' + item.thumb + '" alt="" loading="lazy" />' +
+        '<img src="' + item.thumb + '" alt="" loading="eager" decoding="async" />' +
         "</div>"
       );
+    }
+
+    function waitForImage(img) {
+      if (img.complete && img.naturalWidth > 0) {
+        return img.decode ? img.decode().catch(function () {}) : Promise.resolve();
+      }
+      return new Promise(function (resolve) {
+        var done = function () {
+          if (img.decode) {
+            img.decode().then(resolve).catch(resolve);
+          } else {
+            resolve();
+          }
+        };
+        img.addEventListener("load", done, { once: true });
+        img.addEventListener("error", resolve, { once: true });
+        // Re-assign src to kick browsers that skipped offscreen lazy loads
+        if (!img.complete) {
+          var src = img.getAttribute("src");
+          img.removeAttribute("src");
+          img.setAttribute("src", src);
+        }
+      });
+    }
+
+    function waitForAllImages() {
+      var imgs = Array.prototype.slice.call(document.images);
+      return Promise.all(imgs.map(waitForImage));
+    }
+
+    async function printWhenReady() {
+      var btn = document.getElementById("printBtn");
+      var status = document.getElementById("loadStatus");
+      btn.disabled = true;
+      status.textContent = "Making sure every square is loaded…";
+      await waitForAllImages();
+      // One more paint frame so print preview sees decoded bitmaps
+      await new Promise(function (r) { requestAnimationFrame(function () { requestAnimationFrame(r); }); });
+      var missing = Array.prototype.slice.call(document.images).filter(function (img) {
+        return !(img.complete && img.naturalWidth > 0);
+      }).length;
+      if (missing) {
+        status.textContent = missing + " images still missing — check your connection, then try again.";
+        btn.disabled = false;
+        btn.textContent = "Print cards";
+        return;
+      }
+      status.textContent = "Ready — opening print preview.";
+      btn.disabled = false;
+      btn.textContent = "Print cards";
+      window.print();
     }
 
     function renderCard(cardNumber, setLabel, tiles) {
@@ -325,6 +384,25 @@
       }
 
       root.innerHTML = parts.join("");
+
+      var btn = document.getElementById("printBtn");
+      var status = document.getElementById("loadStatus");
+      btn.addEventListener("click", function () { printWhenReady(); });
+
+      // Ctrl/Cmd+P and browser print menu: preload first
+      window.addEventListener("beforeprint", function () {
+        Array.prototype.forEach.call(document.images, function (img) {
+          img.loading = "eager";
+        });
+      });
+
+      waitForAllImages().then(function () {
+        status.textContent = "All images loaded — safe to print.";
+        btn.disabled = false;
+      }).catch(function () {
+        status.textContent = "Some images failed — you can still try Print.";
+        btn.disabled = false;
+      });
     }
 
     main();
