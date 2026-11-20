@@ -69,6 +69,36 @@
       opacity: 0.95;
     }
 
+    .toolbar-controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.65rem 1rem;
+      align-items: center;
+    }
+
+    .toolbar label {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      font-size: 0.9rem;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+
+    .toolbar input[type="number"] {
+      width: 4.2rem;
+      border: 0;
+      border-radius: 6px;
+      padding: 0.4rem 0.45rem;
+      font: inherit;
+      font-weight: 600;
+      color: var(--cranberry);
+    }
+
+    @media print {
+      .toolbar { display: none !important; }
+    }
+
     #cards {
       display: flex;
       flex-direction: column;
@@ -237,7 +267,18 @@
 </head>
 <body>
   <div class="toolbar">
-    <p><strong>Thanksgiving Day Parade Bingo</strong> — 20 printable cards. Stay online so images load, then print. Cards 1–10: balloons · Cards 11–20: balloons &amp; floats. Center FREE square is Santa. <span class="status" id="loadStatus">Loading images…</span></p>
+    <div>
+      <p><strong>Thanksgiving Day Parade Bingo</strong> — choose how many cards to print for each type. Center FREE square is Santa. <span class="status" id="loadStatus">Loading images…</span></p>
+      <div class="toolbar-controls" style="margin-top:0.55rem">
+        <label for="balloonCount">Balloons
+          <input id="balloonCount" type="number" min="0" max="50" value="10" />
+        </label>
+        <label for="mixedCount">Balloons &amp; Floats
+          <input id="mixedCount" type="number" min="0" max="50" value="10" />
+        </label>
+        <button type="button" id="regenBtn">Update cards</button>
+      </div>
+    </div>
     <button type="button" id="printBtn" disabled>Print cards</button>
   </div>
   <div id="cards"></div>
@@ -368,41 +409,69 @@
       );
     }
 
-    function main() {
-      const balloonPool = CATALOG.balloons;
-      const mixedPool = CATALOG.balloons.concat(CATALOG.floats);
-      const root = document.getElementById("cards");
-      const parts = [];
+    function clampCount(value) {
+      var n = parseInt(value, 10);
+      if (isNaN(n) || n < 0) n = 0;
+      if (n > 50) n = 50;
+      return n;
+    }
 
-      for (let n = 1; n <= 10; n++) {
-        const tiles = pickBoard(balloonPool, 2026000 + n * 97);
-        parts.push(renderCard(n, "Balloons", tiles));
+    function renderAllCards() {
+      var balloonCount = clampCount(document.getElementById("balloonCount").value);
+      var mixedCount = clampCount(document.getElementById("mixedCount").value);
+      document.getElementById("balloonCount").value = balloonCount;
+      document.getElementById("mixedCount").value = mixedCount;
+
+      var balloonPool = CATALOG.balloons;
+      var mixedPool = CATALOG.balloons.concat(CATALOG.floats);
+      var root = document.getElementById("cards");
+      var parts = [];
+      var n;
+
+      for (n = 1; n <= balloonCount; n++) {
+        parts.push(renderCard(n, "Balloons", pickBoard(balloonPool, 2026000 + n * 97)));
       }
-      for (let n = 1; n <= 10; n++) {
-        const tiles = pickBoard(mixedPool, 2027000 + n * 131);
-        parts.push(renderCard(n, "Balloons & Floats", tiles));
+      for (n = 1; n <= mixedCount; n++) {
+        parts.push(renderCard(n, "Balloons & Floats", pickBoard(mixedPool, 2027000 + n * 131)));
       }
 
       root.innerHTML = parts.join("");
 
       var btn = document.getElementById("printBtn");
       var status = document.getElementById("loadStatus");
-      btn.addEventListener("click", function () { printWhenReady(); });
+      var total = balloonCount + mixedCount;
+      if (!total) {
+        status.textContent = "Set at least one card count above zero.";
+        btn.disabled = true;
+        return;
+      }
 
-      // Ctrl/Cmd+P and browser print menu: preload first
+      btn.disabled = true;
+      status.textContent = "Loading " + total + " card" + (total === 1 ? "" : "s") + "…";
+      waitForAllImages().then(function () {
+        status.textContent = "All images loaded — safe to print (" + total + " cards).";
+        btn.disabled = false;
+      }).catch(function () {
+        status.textContent = "Some images failed — you can still try Print.";
+        btn.disabled = false;
+      });
+    }
+
+    function main() {
+      var btn = document.getElementById("printBtn");
+      var regen = document.getElementById("regenBtn");
+      btn.addEventListener("click", function () { printWhenReady(); });
+      regen.addEventListener("click", renderAllCards);
+      document.getElementById("balloonCount").addEventListener("change", renderAllCards);
+      document.getElementById("mixedCount").addEventListener("change", renderAllCards);
+
       window.addEventListener("beforeprint", function () {
         Array.prototype.forEach.call(document.images, function (img) {
           img.loading = "eager";
         });
       });
 
-      waitForAllImages().then(function () {
-        status.textContent = "All images loaded — safe to print.";
-        btn.disabled = false;
-      }).catch(function () {
-        status.textContent = "Some images failed — you can still try Print.";
-        btn.disabled = false;
-      });
+      renderAllCards();
     }
 
     main();
